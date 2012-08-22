@@ -1,0 +1,31 @@
+<html>
+<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+<head>
+<link rel="stylesheet" href="styles/base.css" type="text/css">
+</head>
+
+<body>
+    <div align="center"><h1>habrahabr.ru</h1></div>
+	<div align="center"><img src="http://habrahabr.ru/i/logo.gif"></div>
+    {% for article in articles %}
+        <pdf:nextpage>
+    	<div align="center"><h1><strong>{{ article.title }}</strong></h1></div>
+    	<br />
+    	<div align="left">Автор: {{ article.author }}</div>
+    	<div align="left">Дата: {{ article.date }}</div>
+    	<div align="left">Ключевые слова: {{ article.keywords|join(", ") }}</div>
+{% if article.hubs %}
+    	<div align="left">Хабы: {{ article.hubs|join(", ") }}</div>
+{% endif %}
+{% if article.hubs_prof %}
+    	<div align="left">Профильные хабы: {{ article.hubs_prof|join(", ") }}</div>
+{% endif %}
+    	<br />
+    	<div align="justify">{{ article.content }}</div>
+    	<br />
+    	<div align="right"><a href="{{ article.url }}">{{ article.url }}</a></div>
+    {% endfor %}
+
+    <!--div id="footerContent" align="center"><pdf:pagenumber></div-->
+</body>
+</html>
