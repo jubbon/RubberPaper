@@ -167,6 +167,7 @@ def main():
     try:
         import argparse
         parser = argparse.ArgumentParser(description = "RubberPaper")
+        parser.add_argument("-v", "--verbose", metavar = "verbose", help = "Verbose output")
         subparser = parser.add_subparsers(dest="command", help = "commands")
 
         feed_parser = subparser.add_parser("feed", help = "Collect one or more feeds")
@@ -336,9 +337,9 @@ def main():
 
             tz = pytz.timezone(DEFAULT_TIMEZONE)
             date_after = datetime.datetime.combine(date_after, datetime.time(tzinfo = tz))
-            print date_after
+            if args.verbose: print date_after
             date_before = datetime.datetime.combine(date_before, datetime.time(tzinfo = tz))
-            print date_before
+            if args.verbose: print date_before
 
             if args.output:
                 urls = list()
