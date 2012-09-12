@@ -4,66 +4,83 @@
 DEFAULT_TIMEZONE = "Europe/Moscow"
 
 import re
+import os.path
 import urllib2
 import urlparse
-
+import datetime
+import pytz
+import dateutil.parser
+from dateutil.parser import parserinfo
 from bs4 import BeautifulSoup
 
+
+class HabraHabrRu:
+    url = "habrahabr.ru"
+    def parse(cls, data):
+        soup = BeautifulSoup(data)
+
+        # Metadata
+        post_div = soup.find('div', 'post')
+        if post_div is None:
+            # Статья отсутствует
+            return None
+
+        # Хабы
+        raw_hubs = post_div.find('div', 'hubs')
+        hubs = []
+        hubs_prof = []
+
+        for child in raw_hubs.find_all(True):
+            if child.name == 'a':
+                hubs.append(child.text.strip())
+            elif child.name == 'span':
+                hubs_prof.append(hubs.pop())
+
+        # Заголовок статьи
+        title = post_div.find('span', 'post_title').text.strip()
+
+        # Ключевые слова
+        keywords = [a.text.strip() for a in post_div.find('ul', 'tags').find_all('a', rel='tag')]
+
+        infopanel = post_div.find('div', 'infopanel')
+
+        # Автор статьи
+        author = infopanel.find('div', 'author').a.text.strip()
+
+        # Дата публикации
+        published = infopanel.find('div', 'published').text.strip()
+
+        # Текст статьи
+        content = post_div.find('div', 'content')
+        content.find('div', 'clear').decompose()
+
+        # Комментарии
+        comments = [parse_comment(comment) for comment in soup.find_all('div', 'comment_item')]
+
+        article = {
+            'title': title,
+            'author':author,
+            'date': published,
+            'hubs': hubs,
+            'hubs_prof': hubs_prof,
+            'keywords': keywords,
+            'content': content,
+            'comments': comments,
+        }
+        return article
+
+
 def parse_article(url):
+    article = None
     try:
+        hostname = urlparse.urlsplit(url).hostname
         response = urllib2.urlopen(url)
         data = response.read()
+        if hostname == "habrahabr.ru":
+            article = HabraHabrRu().parse(data)
     except:
-        raise urllib2.URLError('Failed to download')
-    soup = BeautifulSoup(data)
-
-    # Metadata
-    post_div = soup.find('div', 'post')
-
-    # Хабы
-    raw_hubs = post_div.find('div', 'hubs')
-    hubs = []
-    hubs_prof = []
-
-    for child in raw_hubs.find_all(True):
-        if child.name == 'a':
-            hubs.append(child.text.strip())
-        elif child.name == 'span':
-            hubs_prof.append(hubs.pop())
-
-    # Заголовок статьи
-    title = post_div.find('span', 'post_title').text.strip()
-
-    # Ключевые слова
-    keywords = [a.text.strip() for a in post_div.find('ul', 'tags').find_all('a', rel='tag')]
-
-    infopanel = post_div.find('div', 'infopanel')
-
-    # Автор статьи
-    author = infopanel.find('div', 'author').a.text.strip()
-
-    # Дата публикации
-    published = infopanel.find('div', 'published').text.strip()
-
-    # Текст статьи
-    content = post_div.find('div', 'content')
-    content.find('div', 'clear').decompose()
-
-    # Комментарии
-    comments = [parse_comment(comment) for comment in soup.find_all('div', 'comment_item')]
-
-    article = {
-        'url': url,
-        'title': title,
-        'author':author,
-        'date': published,
-        'hubs': hubs,
-        'hubs_prof': hubs_prof,
-        'keywords': keywords,
-        'content': content,
-        'comments': comments,
-    }
-    #article.update(footer)
+        return None
+        #raise urllib2.URLError('Failed to download')
     return article
 
 
