@@ -157,7 +157,7 @@ def render(hostname, topics, output):
             print "ERROR!!!", exc
 
     content = tmpl.render(articles = articles)
-    pisa.CreatePDF(content.encode('utf-8'), file(output, 'wb'))
+    pisa.CreatePDF(content.encode('utf-8'), output)
 
 
 def main():
@@ -172,7 +172,7 @@ def main():
 
         render_parser = subparser.add_parser("render", help = "Render a PDF document")
         render_parser.add_argument('--date')
-        render_parser.add_argument('--output')
+        render_parser.add_argument('--output', type = argparse.FileType("wb"))
         render_parser.add_argument('--url')
 
         convert_parser = subparser.add_parser("convert", help = "Convert a storage")
