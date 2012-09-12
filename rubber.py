@@ -5,7 +5,7 @@ DEFAULT_TIMEZONE = "Europe/Moscow"
 
 import re
 import urllib2
-
+import urlparse
 
 from bs4 import BeautifulSoup
 
@@ -136,26 +136,23 @@ import os.path
 import dateutil.parser
 from dateutil.parser import parserinfo
 
-
-def save(urls, output):
+def render(hostname, topics, output):
     ''' Save articles in document
     '''
     from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader('templates'))
-    tmpl = env.get_template('habrahabr.ru.html')
-
+    tmpl = env.get_template(hostname)
     import ho.pisa as pisa
     pisa.showLogging()
 
     import tempfile
     articles = list()
-    for url in urls:
+    for topic in topics:
         try:
-            article = parse_article(url)
-            content = tmpl.render(articles = (article,))
+            content = tmpl.render(articles = (topic,))
             with tempfile.TemporaryFile('wb') as temp:
                 pisa.CreatePDF(content.encode('utf-8'), temp)
-            articles.append(article)
+            articles.append(topic)
         except Exception, exc:
             print "ERROR!!!", exc
 
@@ -265,7 +262,6 @@ def main():
                         )
 
             import feedparser
-            import urlparse
             for feed in feeds:
                 print "Processing feed {0}...".format(feed)
                 index_file_name = os.path.expanduser(os.path.join("~", ".rubber", "index", urlparse.urlsplit(feed).hostname))
@@ -342,21 +338,34 @@ def main():
             if args.verbose: print date_before
 
             if args.output:
-                urls = list()
+                topics = list()
                 if args.url:
-                    urls = (args.url, )
+                    hostname = urlparse.urlsplit(args.url).hostname
+                    if urlparse.urlsplit(args.url).path in ("", "/"):
+                        index_file_name = os.path.expanduser(os.path.join("~", ".rubber", "index", urlparse.urlsplit(args.url).hostname))
+                        with closing(shelve.open(index_file_name, flag="r")) as storage:
+                            for topicid in storage.keys():
+                                topic = storage[topicid]
+                                date = topic["date"]
+                                if date >= date_after and date < date_before:
+                                    topic["data"] = parse_article(topic["url"])
+                                    topics.append(topic)
+                    else:
+                        urls = (args.url, )
                 else:
                     for dirpath, dirnames, filenames in os.walk(os.path.expanduser(os.path.join("~", ".rubber", "index"))):
                         for filename in filenames:
                             if filename in ("habrahabr.ru",):
                                 index_file_name = os.path.join(dirpath, filename)
                                 with closing(shelve.open(index_file_name, flag="r")) as storage:
-                                    for url in storage.keys():
-                                        date = storage[url]["date"]
+                                    for topicid in storage.keys():
+                                        topic = storage[topicid]
+                                        date = topic["date"]
                                         if date >= date_after and date < date_before:
-                                            urls.append(url)
+                                            topic["data"] = parse_article(topic["url"])
+                                            topics.append(topic)
                 # Generating document
-                save(urls, args.output)
+                render(hostname, topics, args.output)
         elif args.command == "convert":
             ''' Преобразование хранилища
             '''
