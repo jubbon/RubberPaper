@@ -281,9 +281,7 @@ def main():
         elif args.command == "render":
             ''' Генерация PDF-файла
             '''
-            import datetime
             from dateutil.relativedelta import relativedelta, MO
-            import pytz
             kword = "today"
             offset = None
             d = re.compile("^(\w+)(?:-(\d+))?$")
