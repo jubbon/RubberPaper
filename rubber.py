@@ -169,6 +169,7 @@ def main():
 
         feed_parser = subparser.add_parser("feed", help = "Collect one or more feeds")
         feed_parser.add_argument('--url')
+        feed_parser.add_argument('--name')
 
         render_parser = subparser.add_parser("render", help = "Render a PDF document")
         render_parser.add_argument('--date')
@@ -191,75 +192,21 @@ def main():
             ''' Обработка фидов
             '''
             dateparser = dateutil.parser.parser()
+            feeds = list()
             if args.url:
-                feeds = (args.url, )
+                feeds.append(args.url)
+            elif args.name:
+                feed_list_filename = os.path.expanduser(os.path.join("~", ".rubber", "feed-lists", args.name))
+                with open(feed_list_filename, "rt") as f:
+                    for feed in f:
+                        feeds.append(feed.strip())
             else:
-                feeds = (
-                        "http://habrahabr.ru/rss",
-                        "http://habrahabr.ru/rss/corporative",
-                        "http://habrahabr.ru/rss/blogs/python",
-                        "http://habrahabr.ru/rss/blogs/django",
-                        "http://habrahabr.ru/rss/blogs/cpp",
-                        "http://habrahabr.ru/rss/blogs/qt_software",
-                        "http://habrahabr.ru/rss/blogs/programming",
-                        "http://habrahabr.ru/rss/blogs/algorithm",
-                        "http://habrahabr.ru/rss/blogs/nix_coding",
-                        "http://habrahabr.ru/rss/blogs/git",
-                        "http://habrahabr.ru/rss/blogs/complete_code",
-                        "http://habrahabr.ru/rss/blogs/refactoring",
-                        "http://habrahabr.ru/rss/blogs/system_development",
-                        "http://habrahabr.ru/rss/blogs/iconoskaz",
-                        "http://habrahabr.ru/rss/blogs/open_source",
-                        "http://habrahabr.ru/rss/blogs/development",
-                        "http://habrahabr.ru/rss/blogs/development_tools",
-                        "http://habrahabr.ru/rss/blog/html5",
-                        "http://habrahabr.ru/rss/blogs/cuda",
-                        "http://habrahabr.ru/rss/blogs/xml",
-                        "http://habrahabr.ru/rss/blogs/code_review",
-                        "http://habrahabr.ru/rss/blogs/regex",
-                        "http://habrahabr.ru/rss/blogs/vs",
-                        "http://habrahabr.ru/rss/blog/cloud_computing",
-                        "http://habrahabr.ru/rss/blog/hi",
-                        "http://habrahabr.ru/rss/blogs/books",
-                        "http://habrahabr.ru/rss/blogs/ebooks",
-                        "http://habrahabr.ru/rss/blogs/hpodcasts",
-                        "http://habrahabr.ru/rss/blogs/it_bigraphy",
-                        "http://habrahabr.ru/rss/blogs/history",
-                        "http://habrahabr.ru/rss/blogs/gtd",
-                        "http://habrahabr.ru/rss/blogs/study",
-                        "http://habrahabr.ru/rss/company/pocketbook/blog",
-                        "http://habrahabr.ru/rss/company/microsoft/blog",
-                        "http://habrahabr.ru/rss/company/yandex/blog",
-                        "http://habrahabr.ru/rss/blogs/startup",
-                        "http://habrahabr.ru/rss/blogs/firefox",
-                        "http://habrahabr.ru/rss/blogs/yandex",
-                        "http://habrahabr.ru/rss/blogs/google",
-                        "http://habrahabr.ru/rss/blogs/internet",
-                        "http://habrahabr.ru/rss/blogs/testing",
-                        "http://habrahabr.ru/rss/blogs/tdd",
-                        "http://habrahabr.ru/rss/blogs/agile",
-                        "http://habrahabr.ru/rss/blogs/pm",
-                        "http://habrahabr.ru/rss/blogs/conference",
-                        "http://habrahabr.ru/rss/blogs/hr",
-                        "http://habrahabr.ru/rss/blogs/office",
-                        "http://habrahabr.ru/rss/blogs/infosecurity",
-                        "http://habrahabr.ru/rss/blogs/virus",
-                        "http://habrahabr.ru/rss/blogs/web_security",
-                        "http://habrahabr.ru/rss/blogs/crypto",
-                        "http://habrahabr.ru/rss/blogs/sysadm",
-                        "http://habrahabr.ru/rss/blogs/virtualization",
-                        "http://habrahabr.ru/rss/blogs/network_technologies",
-                        "http://habrahabr.ru/rss/blogs/sql",
-                        "http://habrahabr.ru/rss/blogs/memcached",
-                        "http://habrahabr.ru/rss/blogs/postgresql",
-                        "http://habrahabr.ru/rss/blogs/mongodb",
-                        "http://habrahabr.ru/rss/blogs/nosql",
-                        "http://habrahabr.ru/rss/blogs/linux",
-                        "http://habrahabr.ru/rss/blogs/ubuntu",
-                        "http://habrahabr.ru/rss/blogs/windows",
-                        "http://habrahabr.ru/rss/blogs/android",
-                        "http://habrahabr.ru/rss/blogs/nix",
-                        )
+                for dirpath, dirnames, filenames in os.walk(os.path.expanduser(os.path.join("~", ".rubber", "feed-lists"))):
+                    for filename in filenames:
+                        feed_list_filename = os.path.join(dirpath, filename)
+                        with open(feed_list_filename, "rt") as f:
+                            for feed in f:
+                                feeds.append(feed.strip())
 
             import feedparser
             for feed in feeds:
