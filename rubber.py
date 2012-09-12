@@ -177,6 +177,10 @@ def main():
         render_parser.add_argument('--output')
         render_parser.add_argument('--url')
 
+        convert_parser = subparser.add_parser("convert", help = "Convert a storage")
+        convert_parser.add_argument('--input', required = True)
+        convert_parser.add_argument('--output', required = True)
+
         try:
             args = parser.parse_args()
         except IOError, err:
@@ -352,6 +356,19 @@ def main():
                                             urls.append(url)
                 # Generating document
                 save(urls, args.output)
+        elif args.command == "convert":
+            ''' Преобразование хранилища
+            '''
+            topics = list()
+            with closing(shelve.open(os.path.expanduser(args.output), flag="c")) as out_storage:
+                with closing(shelve.open(os.path.expanduser(args.input), flag="r")) as in_storage:
+                    for topicid in in_storage.keys():
+                        topic = in_storage[topicid]
+                        for value in topic.keys():
+                            if isinstance(topic[value], str):
+                                print "Converting {0}".format(topic[value])
+                                topic[value] = topic[value].decode("utf-8")
+                        out_storage[topicid] = topic
     except KeyboardInterrupt:
         pass
 
