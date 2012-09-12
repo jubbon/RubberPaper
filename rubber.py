@@ -210,34 +210,57 @@ def main():
 
             import feedparser
             for feed in feeds:
-                print "Processing feed {0}...".format(feed)
-                index_file_name = os.path.expanduser(os.path.join("~", ".rubber", "index", urlparse.urlsplit(feed).hostname))
-                with closing(shelve.open(index_file_name, flag="w")) as storage:
-                    news = feedparser.parse(feed)
-                    for n in reversed(news.entries):
-                        # Ссылка на новость
-                        url = n.link.encode("utf-8")
-                        if not storage.has_key(url):
-                            article = dict()
+                try:
+                    print "Processing feed {0}...".format(feed)
+                    index_file_name = os.path.expanduser(os.path.join("~", ".rubber", "index", urlparse.urlsplit(feed).hostname))
+                    with closing(shelve.open(index_file_name, flag = "c")) as storage:
+                        news = feedparser.parse(feed)
+                        # Кодировка сообщений
+                        codepage = news.encoding
+                        for n in reversed(news.entries):
 
-                            # Ссылка на статью
-                            article["url"] = url.encode("utf-8")
-                            print "URL:{0}".format(article["url"]).strip()
+                            # Ссылка на новость
+                            url = n.link
+                            # Идентификатор новости
+                            if hasattr(n, "id"):
+                                topicid = n.id
+                            else:
+                                topicid = url
 
-                            # Заголовок новости
-                            article["title"] = n.title.encode("utf-8")
-                            print "Title:{0}".format(article["title"]).strip()
+                            if not storage.has_key(topicid.encode("utf-8")):
+                                article = dict()
 
-                            # Дата опубликования новости
-                            article["date"] = dateparser.parse(n.published)
-                            print "Date:{0}".format(article["date"]).strip()
+                                # Ссылка на статью
+                                article["url"] = url
+                                print "URL:{0}".format(article["url"].encode("utf-8")).strip()
 
-                            # Автор новости
-                            if hasattr(n, "author"):
-                                article["author"] = n.author.encode("utf-8")
-                                print "Author:{0}".format(article["author"]).strip()
+                                # Заголовок новости
+                                article["title"] = n.title
+                                print "Title:{0}".format(article["title"].encode("utf-8")).strip()
 
-                            storage[url] = article
+                                # Дата опубликования новости
+                                article["date"] = None
+                                if hasattr(n, "published"):
+                                    article["date"] = dateparser.parse(n.published)
+                                elif hasattr(n, "updated"):
+                                    article["date"] = dateparser.parse(n.updated)
+                                else:
+                                    article["date"] = datetime.datetime.now(pytz.timezone(DEFAULT_TIMEZONE))
+                                if article["date"]:
+                                    print "Date:{0}".format(article["date"]).strip()
+
+                                # Автор новости
+                                if hasattr(n, "author"):
+                                    article["author"] = n.author
+                                    print "Author:{0}".format(article["author"].encode("utf-8")).strip()
+
+                                # Содержание новости
+                                if hasattr(n, "summary"):
+                                    article["summary"] = n.summary
+
+                                storage[topicid.encode("utf-8")] = article
+                except Exception, exc:
+                    print exc
         elif args.command == "render":
             ''' Генерация PDF-файла
             '''
