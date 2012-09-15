@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 class HabraHabrRu:
     url = "habrahabr.ru"
     def parse(cls, data):
+        article = dict()
         soup = BeautifulSoup(data)
 
         # Metadata
@@ -44,7 +45,16 @@ class HabraHabrRu:
 
         infopanel = post_div.find('div', 'infopanel')
 
-        # Автор статьи
+        # Автор и адрес оригинальной статьи
+        try:
+            article["original_author"] = infopanel.find('div', 'original-author').a.text.strip()
+            print "Original author: {0}".format(article["original_author"])
+            article["original_url"] = infopanel.find('div', 'original-author').a["href"].strip()
+            print "Original url: {0}".format(article["original_url"])
+        except:
+            pass
+
+        # Автор статьи или перевода
         author = infopanel.find('div', 'author').a.text.strip()
 
         # Дата публикации
@@ -57,7 +67,7 @@ class HabraHabrRu:
         # Комментарии
         comments = [parse_comment(comment) for comment in soup.find_all('div', 'comment_item')]
 
-        article = {
+        article.update({
             'title': title,
             'author':author,
             'date': published,
@@ -66,7 +76,7 @@ class HabraHabrRu:
             'keywords': keywords,
             'content': content,
             'comments': comments,
-        }
+        })
         return article
 
 
