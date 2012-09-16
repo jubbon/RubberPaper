@@ -80,6 +80,24 @@ class HabraHabrRu:
         return article
 
 
+class PyPi:
+    url = "pypi.python.org"
+    def parse(cls, data):
+        article = dict()
+        soup = BeautifulSoup(data)
+
+        # Текст статьи
+        content = soup.find('div', 'section')
+        print str(content)
+        content.h1.decompose()
+        #content.h1.replace("h2")
+        if content.find('table', 'list'):
+            content.find('table', 'list').decompose()
+        article["content"] = content
+
+        return article
+
+
 def parse_article(url):
     article = None
     try:
@@ -88,6 +106,8 @@ def parse_article(url):
         data = response.read()
         if hostname == "habrahabr.ru":
             article = HabraHabrRu().parse(data)
+        elif hostname == "pypi.python.org":
+            article = PyPi().parse(data)
     except:
         return None
         #raise urllib2.URLError('Failed to download')
@@ -200,7 +220,7 @@ def main():
 
         render_parser = subparser.add_parser("render", help = "Render a PDF document")
         render_parser.add_argument('--date')
-        render_parser.add_argument('--output', type = argparse.FileType("wb"))
+        render_parser.add_argument('--output', type = argparse.FileType("wb", 0))
         render_parser.add_argument('--url')
 
         convert_parser = subparser.add_parser("convert", help = "Convert a storage")

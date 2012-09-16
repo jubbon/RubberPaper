@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}
+    <div align="center"><h1>pypi.python.org</h1></div>
+    <div align="center"><img src="http://www.python.org/images/python-logo.gif"></div>
+{% endblock title %}
+
+{% block topic %}
+    <div align="center"><h1><strong>{{ article.title }}</strong></h1></div>
+    <div align="left"><a href="{{ article.url }}">{{ article.url }}</a></div>
+    <div align="left">Дата: {{ article.date }}</div>
+    <br />
+    <div align="justify">{{ article.data.content }}</div>
+    <br />
+{% endblock topic %}
