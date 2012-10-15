@@ -28,20 +28,20 @@ class HabraHabrRu:
 
         # Хабы
         raw_hubs = post_div.find('div', 'hubs')
-        hubs = []
-        hubs_prof = []
+        article["hubs"] = []
+        article["hubs_prof"] = []
 
         for child in raw_hubs.find_all(True):
             if child.name == 'a':
-                hubs.append(child.text.strip())
+                article["hubs"].append(child.text.strip())
             elif child.name == 'span':
-                hubs_prof.append(hubs.pop())
+                article["hubs_prof"].append(hubs.pop())
 
         # Заголовок статьи
-        title = post_div.find('span', 'post_title').text.strip()
+        article["title"] = post_div.find('span', 'post_title').text.strip()
 
         # Ключевые слова
-        keywords = [a.text.strip() for a in post_div.find('ul', 'tags').find_all('a', rel='tag')]
+        article["keywords"] = [a.text.strip() for a in post_div.find('ul', 'tags').find_all('a', rel='tag')]
 
         infopanel = post_div.find('div', 'infopanel')
 
@@ -55,28 +55,17 @@ class HabraHabrRu:
             pass
 
         # Автор статьи или перевода
-        author = infopanel.find('div', 'author').a.text.strip()
+        article["author"] = infopanel.find('div', 'author').a.text.strip()
 
         # Дата публикации
-        published = infopanel.find('div', 'published').text.strip()
+        article["date"] = infopanel.find('div', 'published').text.strip()
 
         # Текст статьи
-        content = post_div.find('div', 'content')
-        content.find('div', 'clear').decompose()
+        article["content"] = post_div.find('div', 'content').find('div', 'clear').decompose()
 
         # Комментарии
-        comments = [parse_comment(comment) for comment in soup.find_all('div', 'comment_item')]
+        article["comments"] = [parse_comment(comment) for comment in soup.find_all('div', 'comment_item')]
 
-        article.update({
-            'title': title,
-            'author':author,
-            'date': published,
-            'hubs': hubs,
-            'hubs_prof': hubs_prof,
-            'keywords': keywords,
-            'content': content,
-            'comments': comments,
-        })
         return article
 
 
