@@ -13,7 +13,7 @@
 {% else %}
     <div align="left">Автор: {{ article.author }}</div>
 {% endif %}
-    <div align="left">Дата: {{ article.date }}</div>
+    <div align="left">Дата: {{ article.data.date }}</div>
     <div align="left">Ключевые слова: {{ article.data.keywords|join(", ") }}</div>
 {% if article.data.hubs %}
     <div align="left">Хабы: {{ article.data.hubs|join(", ") }}</div>

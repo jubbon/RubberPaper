@@ -35,7 +35,7 @@ class HabraHabrRu:
             if child.name == 'a':
                 article["hubs"].append(child.text.strip())
             elif child.name == 'span':
-                article["hubs_prof"].append(hubs.pop())
+                article["hubs_prof"].append(article["hubs"].pop())
 
         # Заголовок статьи
         article["title"] = post_div.find('span', 'post_title').text.strip()
@@ -58,10 +58,11 @@ class HabraHabrRu:
         article["author"] = infopanel.find('div', 'author').a.text.strip()
 
         # Дата публикации
-        article["date"] = infopanel.find('div', 'published').text.strip()
+        article["date"] = post_div.find('div', 'published').text.strip()
 
         # Текст статьи
-        article["content"] = post_div.find('div', 'content').find('div', 'clear').decompose()
+        article["content"] = post_div.find('div', 'content')
+        article["content"].find('div', 'clear').decompose()
 
         # Комментарии
         article["comments"] = [parse_comment(comment) for comment in soup.find_all('div', 'comment_item')]
@@ -97,7 +98,10 @@ def parse_article(url):
             article = HabraHabrRu().parse(data)
         elif hostname == "pypi.python.org":
             article = PyPi().parse(data)
-    except:
+    except KeyboardInterrupt:
+        raise
+    except Exception, exc:
+        print exc
         return None
         #raise urllib2.URLError('Failed to download')
     return article
